@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>1.js 读取文件</h3>
+    <input type="file" onchange="readFile(event)">
+</body>
+<script>
+    function readFile(event){
+        // 1. 获取上传文件  --》 只有手动上传文件,才可读取
+        let file =  event.target.files[0];
+
+        // 2. 使用reader 进行字节分析
+        var reader = new FileReader();
+        reader.onload = function(e) {
+           var data = e.target.result;
+           console.log(data);
+        };
+
+        // 3. 加载  --》 此处会产生io
+        // readAsBinaryString 读取字符 --》 废弃api
+        // readAsText 标准的字符串形式
+        reader.readAsText(file)
+    }
+
+
+</script>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>4. worker </h3>
+    <input type="file" onchange="readFile(event)">
+    <div><button onclick="console.log(1)">其他操作</button></div>
+    <p>选择大文件时,此时js进行io操作,主线程卡死,无法进行其他操作</p>
+</body>
+<script>
+    
+    function readFile(event){
+        const worker = new Worker('index4.worker.js');
+        worker.postMessage(event.target.files[0]);
+
+        worker.onmessage = function (event) {
+            console.log('获取到解析后的数据');
+            worker.terminate();
+        }
+    }
+
+    // 记录上一次与这一次的时间差
+    let last = Date.now()
+    const fnCount = setInterval(()=>{
+        let now = Date.now()
+        console.log(now - last);
+        last = now 
+    } ,10)
+</script>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>5. 压缩包解析 </h3>
+    <input type="file" onchange="readFile(event)">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jszip/2.6.1/jszip.min.js"></script>
+</body>
+<script>
+    /**
+     * 获取压缩包中的某个文件步骤
+     * 
+     * 1. 读取整个压缩包的字节码
+     * 2. 获取某个文件的字节码范围
+     * 3. 解码 
+     * 
+     * 新版的 excel 本质就是压缩包
+     */
+    function readFile(event){
+        let file =  event.target.files[0];
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var data = e.target.result;
+            console.log('压缩文件字节码',data)
+            var zip = new JSZip(data);
+            console.log('读取压缩包中的某个文件',zip.file('big.txt').asText())
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+</script>
+</html>

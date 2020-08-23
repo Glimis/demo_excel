@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>6. excel </h3>
+    <input type="file" onchange="readFile(event)">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jszip/2.6.1/jszip.min.js"></script>
+</body>
+<script>
+    /**
+     * 获取excel步骤
+     * 
+     * 1. 读取整个excel的字节码
+     * 2. 获取sheet的字节码范围
+     * 3. 解码 [指解压缩] 
+     * 4. 对象转换
+     * 
+     * 特指压缩包版,对于二进制,需要按字节处理
+     */
+    function readFile(event){
+        let file =  event.target.files[0];
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var data = e.target.result;
+            var zip = new JSZip(data);
+            console.log('读取excel中的sheet',zip.file('xl/worksheets/sheet1.xml').asText())
+            
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+</script>
+</html>

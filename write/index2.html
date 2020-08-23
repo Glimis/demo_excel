@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>封装指令式下载</h3>
+    <button onclick="download()">下载</button>
+    <button onclick="download2()">下载远程图片</button>
+    <button onclick="download3()">下载zip</button>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jszip/2.6.1/jszip.min.js"></script>
+</body>
+<script>
+    function download(){
+        new TextDown().down("1.txt", "纯文本")
+    }
+
+    function download2(){
+        new ImgDown().down("2.jpg","//pic1.zhimg.com/50/v2-c3aa87e8ed8dceec22af099a5edf5c9f_xs.jpg")
+    }
+
+    function download3(){
+        new ZipDown().down("1.zip",[{
+            name:'1.txt',
+            content:"文件",
+            type:"text"
+        },{
+            name:'2.jpg',
+            content:"//pic1.zhimg.com/50/v2-c3aa87e8ed8dceec22af099a5edf5c9f_xs.jpg",
+            type:"jpg"
+        }])
+    }
+
+    /**
+     * 下载基类 
+     */ 
+    class Down{
+        getContext(){}
+        async down(fileName, content){
+            let element = document.createElement('a');
+            // 设置属性
+            element.download = fileName;
+            // 子类重写getContext
+            element.href  = await this.getContext(content)
+            let event = document.createEvent("MouseEvent");
+            event.initEvent("click", false, false);
+            element.dispatchEvent(event);
+        }
+    }
+
+
+    // 特指修改图片名
+    class ImgDown extends Down{
+         getContext=getImgBase64ByUrl
+    }
+
+    // 指纯文本下载
+    class TextDown extends Down{
+        async getContext(text){
+            return new Promise((resolve,reject)=>{
+                let blob = new Blob([text]);
+                resolve(URL.createObjectURL(blob))
+            })
+        }
+    }
+
+    // 指压缩包下载
+    class ZipDown extends Down{
+        async getContext(json){
+            this.zip = new JSZip();
+            return new Promise((resolve,reject)=>{
+                let promises = json.map(this.append.bind(this))
+
+                Promise.all(promises)
+                .then((a,b,c)=>{
+                    console.log(a,b,c)
+                    let blob = this.zip.generate({type:"blob"})
+                    resolve(URL.createObjectURL(blob))
+                })
+                
+            })
+        }  
+
+        append({name,type,content}){
+            return this[`append_${type}`](name,content)
+        }
+
+        append_text(name,content){
+            let zip = this.zip;
+            zip.file(name,content);
+        }
+
+        async append_jpg(name,content){
+            let zip = this.zip;
+            let base64 = await getImgBase64ByUrl(content)
+            zip.file(name,base64.split(',')[1],{base64: true});
+        }
+    }
+
+
+    function getImgBase64ByUrl(url){
+        return new Promise((resolve,reject)=>{
+            const img = document.createElement('img')
+            img.crossOrigin = 'anonymous';
+            img.src = url
+            
+            img.onload =()=>{
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+                // 判断图片类型
+                resolve(canvas.toDataURL("image/jpg"))
+            }
+        })
+    }
+
+</script>
+</html>

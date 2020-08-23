@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>2. readAsArrayBuffer / readAsBinaryString / readAsText</h3>
+    <table>
+        <tr>
+            <td>readAsArrayBuffer</td>
+            <td>获取字节</td>
+            <td>序列化</td>
+        </tr>
+        <tr>
+            <td>readAsBinaryString</td>
+            <td>获取字节，每个字节直接转换为字符</td>
+            <td>废弃</td>
+        </tr>
+        <tr>
+            <td>readAsText</td>
+            <td>获取字节，将字节转换为 String，可设置编码,允许字节组合</td>
+            <td>字符流</td>
+        </tr>
+        <tr>
+            <td>readAsDataURL</td>
+            <td>base64</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <input type="file" onchange="readFile(event)">
+    <script src="https://cdn.bootcdn.net/ajax/libs/lodash.js/4.17.20/lodash.min.js"></script>
+</body>
+<script>
+    function readFile(event){
+        // 1. 获取上传文件  --》 只有手动上传文件,才可读取
+        let file =  event.target.files[0];
+
+        // 2. 使用reader 进行字节分析
+        var readAsArrayBuffer = new FileReader();
+        readAsArrayBuffer.onload = function(e) {
+           var data = e.target.result;
+            console.log('readAsArrayBuffer:',data);
+            
+            // 转换为 readAsBinaryString
+            const u8 = new Uint8Array(data);
+            
+            let readAsBinaryString = _.chain(u8)
+                .map(byte=> String.fromCharCode(byte))
+                .join("")
+                .value()
+            console.log('readAsArrayBuffer-》readAsBinaryString:',readAsBinaryString)
+
+            // 转换为 readAsText --> 使用decodeURIComponent编码进行转换  
+            // 注: decodeURIComponent 不处理1013,此处为老api示意
+            let v = _.chain(u8)
+                .map(byte=> "%"+byte.toString(16))
+                .join("")
+                .value()
+            console.log('readAsArrayBuffer-》readAsBinaryString:',     decodeURIComponent(v))
+            // 解码器 --》 此处为新api
+            console.log('readAsArrayBuffer-》readAsBinaryString:TextDecoder:', new TextDecoder().decode(u8))
+           
+
+        };
+        // 3. 加载  --》 此处会产生io
+        // readAsBinaryString 读取字符 --》 废弃api
+        // readAsText 标准的字符串形式
+        readAsArrayBuffer.readAsArrayBuffer(file)
+
+
+
+        function readerFactory(readName){
+            var reader = new FileReader();
+            reader.onload = function(e) {
+            var data = e.target.result;
+                console.log(`${readName}:`,data);
+            };
+            reader[readName](file)
+        }
+
+        readerFactory('readAsBinaryString')
+        readerFactory('readAsText')
+        readerFactory('readAsDataURL')
+    }
+
+
+</script>
+</html>
